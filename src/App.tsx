@@ -249,6 +249,28 @@ export default function App() {
   const [formFile, setFormFile] = useState<File | null>(null);
   const [formError, setFormError] = useState('');
 
+  // Admin / Edit Mode authorization states (Default: false for visitors/evaluators)
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    try {
+      return (
+        sessionStorage.getItem('eport_is_admin') === 'true' ||
+        localStorage.getItem('eport_is_admin') === 'true'
+      );
+    } catch {
+      return false;
+    }
+  });
+
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [loginPasswordInput, setLoginPasswordInput] = useState('');
+  const [loginError, setLoginError] = useState('');
+
+  const [isPasswordChangeOpen, setIsPasswordChangeOpen] = useState(false);
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [passwordChangeSuccess, setPasswordChangeSuccess] = useState('');
+
+  const [isGitHubInfoModalOpen, setIsGitHubInfoModalOpen] = useState(false);
+
   // Delete modal state
   const [deleteTarget, setDeleteTarget] = useState<EvidenceRecord | null>(null);
 
@@ -298,6 +320,197 @@ export default function App() {
     window.addEventListener('hashchange', handleHash);
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
+
+  // Auto-prompt login dialog if URL contains ?edit=1 or ?admin=1
+  useEffect(() => {
+    try {
+      const search = window.location.search;
+      if (search.includes('admin=1') || search.includes('edit=1')) {
+        const isAuth =
+          sessionStorage.getItem('eport_is_admin') === 'true' ||
+          localStorage.getItem('eport_is_admin') === 'true';
+        if (!isAuth) {
+          setIsLoginModalOpen(true);
+        }
+      }
+    } catch {}
+  }, []);
+
+  // Fetch static portfolio-data.json if present on hosting (GitHub Pages)
+  useEffect(() => {
+    fetch('./portfolio-data.json')
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then(async (data) => {
+        if (!data || typeof data !== 'object') return;
+        if (data.texts && typeof data.texts === 'object') {
+          setTextValues((prev) => ({ ...data.texts, ...prev }));
+        }
+        if (data.heroImage) {
+          setHeroImage((prev) => prev || data.heroImage);
+        }
+        if (data.evidence && typeof data.evidence === 'object') {
+          const newEvMap: Record<string, EvidenceRecord[]> = {};
+          for (const [k, list] of Object.entries(data.evidence)) {
+            if (!Array.isArray(list)) continue;
+            newEvMap[k] = [];
+            for (const item of list as any[]) {
+              let blob: Blob | undefined = undefined;
+              if (item.base64Blob) {
+                try {
+                  const res = await fetch(item.base64Blob);
+                  blob = await res.blob();
+                } catch {}
+              }
+              newEvMap[k].push({
+                id: item.id || crypto.randomUUID(),
+                k: item.k || k,
+                title: item.title || '',
+                desc: item.desc || '',
+                type: item.type || 'file',
+                url: item.url,
+                name: item.name,
+                mime: item.mime,
+                ts: item.ts || Date.now(),
+                blob,
+              });
+            }
+          }
+          setEvidenceMap((prev) => {
+            const merged = { ...prev };
+            Object.entries(newEvMap).forEach(([k, list]) => {
+              if (!merged[k] || merged[k].length === 0) {
+                merged[k] = list;
+              }
+            });
+            return merged;
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Admin authentication handlers
+  const getAdminPassword = () => {
+    try {
+      const stored = localStorage.getItem('eport_admin_password');
+      if (!stored || stored === 'elena2024') {
+        localStorage.setItem('eport_admin_password', 'Elena2026');
+        return 'Elena2026';
+      }
+      return stored;
+    } catch {
+      return 'Elena2026';
+    }
+  };
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const currentPass = getAdminPassword();
+    const entered = loginPasswordInput.trim();
+    if (entered === currentPass || entered.toLowerCase() === currentPass.toLowerCase()) {
+      setIsAdmin(true);
+      try {
+        sessionStorage.setItem('eport_is_admin', 'true');
+        localStorage.setItem('eport_is_admin', 'true');
+      } catch {}
+      setIsLoginModalOpen(false);
+      setLoginPasswordInput('');
+      setLoginError('');
+    } else {
+      setLoginError('Vale parool. Palun kontrollige parooli ja proovige uuesti.');
+    }
+  };
+
+  const handleExitAdmin = () => {
+    setIsAdmin(false);
+    try {
+      sessionStorage.removeItem('eport_is_admin');
+      localStorage.removeItem('eport_is_admin');
+    } catch {}
+  };
+
+  const handleChangePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newPass = newPasswordInput.trim();
+    if (newPass.length < 4) {
+      alert('Parool peab olema vähemalt 4 tähemärki pikk.');
+      return;
+    }
+    try {
+      localStorage.setItem('eport_admin_password', newPass);
+      setPasswordChangeSuccess('Uus parool on edukalt salvestatud!');
+      setTimeout(() => {
+        setIsPasswordChangeOpen(false);
+        setPasswordChangeSuccess('');
+        setNewPasswordInput('');
+      }, 1500);
+    } catch {
+      alert('Parooli salvestamine ebaõnnestus.');
+    }
+  };
+
+  // Export current data as public portfolio-data.json for GitHub
+  const handleDownloadPublicData = async () => {
+    try {
+      const exportData = {
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        heroImage: heroImage || null,
+        texts: textValues,
+        evidence: {} as Record<string, any[]>,
+      };
+
+      for (const [k, list] of Object.entries(evidenceMap)) {
+        exportData.evidence[k] = await Promise.all(
+          list.map(async (item) => {
+            let base64Blob: string | undefined = undefined;
+            if (item.type === 'file' && item.blob) {
+              try {
+                base64Blob = await new Promise<string>((res, rej) => {
+                  const r = new FileReader();
+                  r.onload = () => res(r.result as string);
+                  r.onerror = rej;
+                  r.readAsDataURL(item.blob!);
+                });
+              } catch (err) {
+                console.warn('Could not serialize blob for item', item.id, err);
+              }
+            }
+            return {
+              id: item.id,
+              k: item.k,
+              title: item.title,
+              desc: item.desc,
+              type: item.type,
+              url: item.url,
+              name: item.name,
+              mime: item.mime,
+              ts: item.ts,
+              base64Blob,
+            };
+          })
+        );
+      }
+
+      const jsonString = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'portfolio-data.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      setIsGitHubInfoModalOpen(true);
+    } catch (err: any) {
+      alert('Andmete salvestamine ebaõnnestus: ' + (err?.message || 'viga'));
+    }
+  };
 
   // Load texts & evidence from IndexedDB
   const loadAllData = async (db: IDBDatabase) => {
@@ -724,6 +937,75 @@ export default function App() {
 
       {warning && <div id="warn">{warning}</div>}
 
+      {/* ADMIN STATUS BANNER (Visible only to Elena Galanina when logged in) */}
+      {isAdmin && (
+        <aside className="admin-banner" aria-label="Toimetamisriba">
+          <div className="admin-banner-content">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+              <span style={{ fontSize: '1.2rem' }}>✏️</span>
+              <span>Toimetamisrežiim aktiivne</span>
+              <span
+                style={{
+                  opacity: 0.9,
+                  fontSize: '0.8rem',
+                  background: 'rgba(255,255,255,0.22)',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                }}
+              >
+                Elena Galanina
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn sm"
+                style={{
+                  background: '#ffffff',
+                  color: '#1e3a8a',
+                  borderColor: '#ffffff',
+                  fontWeight: 700,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                }}
+                onClick={handleDownloadPublicData}
+                title="Laadi alla fail, mille saab GitHubi laadida, et kõigile näha oleks"
+              >
+                <span>📥 Salvesta fail GitHubi jaoks</span>
+              </button>
+              <button
+                type="button"
+                className="btn sm"
+                style={{
+                  background: 'transparent',
+                  color: '#ffffff',
+                  borderColor: 'rgba(255,255,255,0.6)',
+                }}
+                onClick={() => {
+                  setPasswordChangeSuccess('');
+                  setIsPasswordChangeOpen(true);
+                }}
+              >
+                <span>🔑 Muuda parooli</span>
+              </button>
+              <button
+                type="button"
+                className="btn sm"
+                style={{
+                  background: '#F59E0B',
+                  color: '#1E293B',
+                  borderColor: '#F59E0B',
+                  fontWeight: 700,
+                }}
+                onClick={handleExitAdmin}
+                title="Lülitu vaaterežiimi, et näha saiti täpselt nii, nagu näeb komisjon"
+              >
+                <span>👁️ Vaata nagu komisjon</span>
+              </button>
+            </div>
+          </div>
+        </aside>
+      )}
+
       {/* Header with Sticky bar & Nunito Sans navigation */}
       <header>
         <div className="wrap bar">
@@ -780,7 +1062,7 @@ export default function App() {
                     <a
                       href={`#/${p.slug}`}
                       aria-current={isActive ? "page" : undefined}
-                      className={isActive ? "active" : ""}
+                      className={`nav-${p.slug} ${isActive ? "active" : ""}`}
                     >
                       {p.title}
                     </a>
@@ -791,6 +1073,88 @@ export default function App() {
           </nav>
         </div>
       </header>
+
+      {/* ADMIN STATUS BANNER */}
+      {isAdmin && (
+        <aside
+          role="region"
+          aria-label="Toimetamisrežiim"
+          style={{
+            background: '#1E293B',
+            color: '#F8FAFC',
+            padding: '10px 20px',
+            fontSize: '0.88rem',
+            borderBottom: '2px solid #3B82F6',
+          }}
+        >
+          <div
+            className="wrap"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px',
+              padding: 0,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  background: '#22C55E',
+                  boxShadow: '0 0 6px #22C55E',
+                }}
+              />
+              <span style={{ fontWeight: 600 }}>Toimetamisrežiim aktiivne</span>
+              <span style={{ color: '#94A3B8', fontSize: '0.82rem' }}>
+                (Kõik tekstid, fotod ja tõendid on muudetavad)
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setNewPasswordInput('');
+                  setPasswordChangeSuccess('');
+                  setIsPasswordChangeOpen(true);
+                }}
+                style={{
+                  background: '#334155',
+                  border: '1px solid #475569',
+                  color: '#F1F5F9',
+                  padding: '4px 10px',
+                  borderRadius: '5px',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                🔑 Muuda parooli
+              </button>
+              <button
+                type="button"
+                onClick={handleExitAdmin}
+                style={{
+                  background: '#EF4444',
+                  border: 'none',
+                  color: '#FFFFFF',
+                  padding: '4px 12px',
+                  borderRadius: '5px',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                🚪 Logi välja
+              </button>
+            </div>
+          </div>
+        </aside>
+      )}
 
       {/* MAIN CONTAINER */}
       <main id="main" className="wrap" tabIndex={-1}>
@@ -805,30 +1169,38 @@ export default function App() {
                   e-portfoolio
                 </h1>
 
-                {/* Editable Introduction with IndexedDB auto-save */}
-                <div>
-                  <label className="sr" htmlFor="t-home-intro">
-                    Sissejuhatus
-                  </label>
-                  <textarea
-                    id="t-home-intro"
-                    value={textValues["home-intro"] ?? ""}
-                    placeholder="Tutvustan siin ennast ja oma professionaalset teekonda õpetajana."
-                    onChange={(e) => handleTextChange("home-intro", e.target.value)}
-                    aria-describedby="s-home-intro"
-                  />
-                  <div
-                    className={`st ${textStatuses["home-intro"]?.type === 'err' ? 'err' : textStatuses["home-intro"]?.type === 'ok' ? 'ok' : ''}`}
-                    id="s-home-intro"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    {textStatuses["home-intro"]?.msg || ""}
+                {/* Introduction: Read-Only for visitors, Editable Textarea for Elena in Admin mode */}
+                {isAdmin ? (
+                  <div>
+                    <label className="sr" htmlFor="t-home-intro">
+                      Sissejuhatus
+                    </label>
+                    <textarea
+                      id="t-home-intro"
+                      value={textValues["home-intro"] ?? ""}
+                      placeholder="Tutvustan siin ennast ja oma professionaalset teekonda õpetajana."
+                      onChange={(e) => handleTextChange("home-intro", e.target.value)}
+                      aria-describedby="s-home-intro"
+                    />
+                    <div
+                      className={`st ${textStatuses["home-intro"]?.type === 'err' ? 'err' : textStatuses["home-intro"]?.type === 'ok' ? 'ok' : ''}`}
+                      id="s-home-intro"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      {textStatuses["home-intro"]?.msg || ""}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="prose-text" style={{ marginTop: '18px', fontSize: '1.08rem' }}>
+                    {textValues["home-intro"] || (
+                      "Tere tulemast minu e-portfooliosse! Olen Elena Galanina, pühendunud pedagoog ja õpetaja."
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Pildi üleslaadimise ala ja nupp (asendab roboti) */}
+              {/* Photo Area: Clean presentation for visitors, Upload controls for Elena in Admin mode */}
               <div className="hero-image-box">
                 <input
                   type="file"
@@ -848,59 +1220,61 @@ export default function App() {
                   <div className="upload-preview-wrapper">
                     <img
                       src={heroImage}
-                      alt="Üleslaaditud portfoolio foto"
+                      alt="Elena Galanina foto"
                       className="upload-preview-img"
                     />
-                    <div className="upload-preview-actions">
-                      <button
-                        type="button"
-                        className="btn"
-                        style={{
-                          fontSize: '0.88rem',
-                          padding: '8px 16px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          background: '#fff',
-                          border: '1.5px solid var(--bd)',
-                          borderRadius: '10px',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => heroFileInputRef.current?.click()}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                          <polyline points="17 8 12 3 7 8" />
-                          <line x1="12" y1="3" x2="12" y2="15" />
-                        </svg>
-                        <span>Laadi uus pilt</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="btn"
-                        style={{
-                          fontSize: '0.88rem',
-                          padding: '8px 16px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          color: '#DC2626',
-                          background: '#FEF2F2',
-                          border: '1.5px solid #FECACA',
-                          borderRadius: '10px',
-                          cursor: 'pointer',
-                        }}
-                        onClick={handleRemoveHeroImage}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                        <span>Eemalda</span>
-                      </button>
-                    </div>
+                    {isAdmin && (
+                      <div className="upload-preview-actions">
+                        <button
+                          type="button"
+                          className="btn"
+                          style={{
+                            fontSize: '0.88rem',
+                            padding: '8px 16px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: '#fff',
+                            border: '1.5px solid var(--bd)',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => heroFileInputRef.current?.click()}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                          </svg>
+                          <span>Laadi uus pilt</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="btn"
+                          style={{
+                            fontSize: '0.88rem',
+                            padding: '8px 16px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            color: '#DC2626',
+                            background: '#FEF2F2',
+                            border: '1.5px solid #FECACA',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                          }}
+                          onClick={handleRemoveHeroImage}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                          <span>Eemalda</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
-                ) : (
+                ) : isAdmin ? (
                   <div
                     className={`upload-dropzone ${isDraggingOver ? 'dragover' : ''}`}
                     onClick={() => heroFileInputRef.current?.click()}
@@ -985,6 +1359,49 @@ export default function App() {
                       Vali pilt
                     </button>
                   </div>
+                ) : (
+                  <div
+                    style={{
+                      width: '100%',
+                      minHeight: '260px',
+                      background: 'linear-gradient(145deg, #ffffff, #f1f5f9)',
+                      border: '2px solid var(--bd)',
+                      borderRadius: '20px',
+                      padding: '30px 20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textAlign: 'center',
+                      gap: '12px',
+                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '74px',
+                        height: '74px',
+                        borderRadius: '50%',
+                        backgroundColor: '#1e3a8a',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontFamily: "'Lora', Georgia, serif",
+                        fontSize: '32px',
+                        fontWeight: 700,
+                        boxShadow: '0 4px 12px rgba(30, 58, 138, 0.25)',
+                      }}
+                    >
+                      EG
+                    </div>
+                    <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1.15rem' }}>
+                      Elena Galanina
+                    </div>
+                    <div style={{ color: 'var(--mu)', fontSize: '0.9rem', maxWidth: '240px' }}>
+                      Õpetaja e-portfoolio • Kutsestandard tase 7
+                    </div>
+                  </div>
                 )}
               </div>
             </section>
@@ -1060,27 +1477,41 @@ export default function App() {
                   </summary>
 
                   <div className="pb">
-                    {/* Reflection textarea */}
-                    <div>
-                      <label className="sr" htmlFor={`t-${id}`}>
-                        {subTitle}
-                      </label>
-                      <textarea
-                        id={`t-${id}`}
-                        value={textValues[id] ?? ""}
-                        placeholder={placeholder}
-                        onChange={(e) => handleTextChange(id, e.target.value)}
-                        aria-describedby={`s-${id}`}
-                      />
-                      <div
-                        className={`st ${textStatuses[id]?.type === 'err' ? 'err' : textStatuses[id]?.type === 'ok' ? 'ok' : ''}`}
-                        id={`s-${id}`}
-                        role="status"
-                        aria-live="polite"
-                      >
-                        {textStatuses[id]?.msg || ""}
+                    {/* Reflection: Textarea for admin, Clean prose for public visitors */}
+                    {isAdmin ? (
+                      <div>
+                        <label className="sr" htmlFor={`t-${id}`}>
+                          {subTitle}
+                        </label>
+                        <textarea
+                          id={`t-${id}`}
+                          value={textValues[id] ?? ""}
+                          placeholder={placeholder}
+                          onChange={(e) => handleTextChange(id, e.target.value)}
+                          aria-describedby={`s-${id}`}
+                        />
+                        <div
+                          className={`st ${textStatuses[id]?.type === 'err' ? 'err' : textStatuses[id]?.type === 'ok' ? 'ok' : ''}`}
+                          id={`s-${id}`}
+                          role="status"
+                          aria-live="polite"
+                        >
+                          {textStatuses[id]?.msg || ""}
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div style={{ marginBottom: "18px" }}>
+                        {textValues[id] && textValues[id].trim() ? (
+                          <div className="prose-text">
+                            {textValues[id]}
+                          </div>
+                        ) : (
+                          <div className="empty-prose">
+                            Eneseanalüüs lisamisel...
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Evidence block */}
                     <div data-ev={id}>
@@ -1137,33 +1568,37 @@ export default function App() {
                                   {new Date(item.ts).toLocaleDateString("et-EE")}
                                 </div>
 
-                                <div className="acts">
-                                  <button
-                                    className="btn sm"
-                                    onClick={() => openEvidenceModal(id, item)}
-                                  >
-                                    Muuda
-                                  </button>
-                                  <button
-                                    className="btn sm dng"
-                                    onClick={() => setDeleteTarget(item)}
-                                  >
-                                    Kustuta
-                                  </button>
-                                </div>
+                                {isAdmin && (
+                                  <div className="acts">
+                                    <button
+                                      className="btn sm"
+                                      onClick={() => openEvidenceModal(id, item)}
+                                    >
+                                      Muuda
+                                    </button>
+                                    <button
+                                      className="btn sm dng"
+                                      onClick={() => setDeleteTarget(item)}
+                                    >
+                                      Kustuta
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             );
                           })
                         )}
                       </div>
 
-                      <button
-                        className="btn pri"
-                        onClick={() => openEvidenceModal(id)}
-                        style={{ marginTop: "8px" }}
-                      >
-                        + Lisa tõend
-                      </button>
+                      {isAdmin && (
+                        <button
+                          className="btn pri"
+                          onClick={() => openEvidenceModal(id)}
+                          style={{ marginTop: "8px" }}
+                        >
+                          + Lisa tõend
+                        </button>
+                      )}
                     </div>
                   </div>
                 </details>
@@ -1179,19 +1614,11 @@ export default function App() {
         )}
       </main>
 
-      {/* FOOTER WITH BACKUP & EXPORT CONTROLS */}
+      {/* FOOTER */}
       <footer>
-        <div className="wrap" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '24px 20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-            <div>
-              <strong style={{ color: 'var(--tx)', fontSize: '0.98rem' }}>Elena Galanina • e-portfoolio</strong>
-              <div style={{ color: 'var(--mu)', marginTop: '3px', fontSize: '0.85rem' }}>
-                Õpetaja kutsestandard tase 7 • Eneseanalüüs ja tõendusmaterjalid
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-              <input
+        <div className="wrap" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px 20px' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+            <input
                 type="file"
                 ref={importFileInputRef}
                 accept=".json"
@@ -1203,37 +1630,83 @@ export default function App() {
                 }}
               />
 
-              <button
-                type="button"
-                className="btn sm"
-                title="Laadi alla fail kõigi sisestatud tekstide ja tõenditega"
-                onClick={handleExportData}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              >
-                <span>💾 Varunda andmed (JSON)</span>
-              </button>
+              {isAdmin ? (
+                <>
+                  <button
+                    type="button"
+                    className="btn sm"
+                    title="Laadi alla fail kõigi sisestatud tekstide ja tõenditega"
+                    onClick={handleExportData}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <span>💾 Varunda andmed (JSON)</span>
+                  </button>
 
-              <button
-                type="button"
-                className="btn sm"
-                title="Taasta varem salvestatud JSON failist andmed"
-                onClick={() => importFileInputRef.current?.click()}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              >
-                <span>📥 Taasta andmed</span>
-              </button>
+                  <button
+                    type="button"
+                    className="btn sm"
+                    title="Taasta varem salvestatud JSON failist andmed"
+                    onClick={() => importFileInputRef.current?.click()}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <span>📥 Taasta andmed</span>
+                  </button>
 
-              <button
-                type="button"
-                className="btn sm"
-                title="Ava trüki- või PDF-vaade"
-                onClick={() => window.print()}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              >
-                <span>🖨️ Trüki / Salvesta PDF</span>
-              </button>
+                  <button
+                    type="button"
+                    className="btn sm"
+                    title="Muuda portfoolio toimetamise parooli"
+                    onClick={() => {
+                      setNewPasswordInput('');
+                      setPasswordChangeSuccess('');
+                      setIsPasswordChangeOpen(true);
+                    }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <span>🔑 Muuda parooli</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn sm"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      color: '#DC2626',
+                      borderColor: '#FECACA',
+                      background: '#FEF2F2',
+                    }}
+                    onClick={handleExitAdmin}
+                  >
+                    <span>🚪 Logi välja</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="btn sm"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    fontSize: '0.82rem',
+                    opacity: 0.65,
+                    border: '1px dashed #94a3b8',
+                    background: 'transparent',
+                  }}
+                  onClick={() => {
+                    setLoginError('');
+                    setLoginPasswordInput('');
+                    setIsLoginModalOpen(true);
+                  }}
+                  title="Ainult Elena Galanina jaoks"
+                >
+                  <span>🔒</span>
+                  <span>Toimeta</span>
+                </button>
+              )}
             </div>
-          </div>
         </div>
       </footer>
 
@@ -1369,6 +1842,164 @@ export default function App() {
             <button className="btn" id="cx" onClick={() => setDeleteTarget(null)}>
               Tühista
             </button>
+          </div>
+        </dialog>
+      )}
+
+      {/* DIALOG: HALDAJA SISSELOGIMINE */}
+      {isLoginModalOpen && (
+        <dialog
+          open
+          style={{ display: "block", maxWidth: '440px' }}
+          id="login-dlg"
+          aria-labelledby="login-title"
+        >
+          <form onSubmit={handleLoginSubmit}>
+            <h2 id="login-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>🔒</span>
+              <span>Haldaja sisselogimine</span>
+            </h2>
+            <p style={{ color: 'var(--mu)', fontSize: '0.92rem', margin: '8px 0 16px' }}>
+              Ainult Elena Galanina jaoks portfoolio tekstide, fotode ja tõendite muutmiseks.
+            </p>
+
+            <label htmlFor="admin-pwd">Parool / PIN</label>
+            <input
+              type="password"
+              id="admin-pwd"
+              required
+              value={loginPasswordInput}
+              onChange={(e) => {
+                setLoginPasswordInput(e.target.value);
+                setLoginError('');
+              }}
+              placeholder="Sisesta parool"
+              autoFocus
+            />
+
+            <div style={{ fontSize: '0.84rem', color: '#64748B', marginTop: '6px' }}>
+              💡 Sisestage parool toimetamise režiimi avamiseks.
+            </div>
+
+            {loginError && (
+              <div className="fe" role="alert" style={{ marginTop: '10px' }}>
+                {loginError}
+              </div>
+            )}
+
+            <div className="acts" style={{ marginTop: '20px' }}>
+              <button className="btn pri" type="submit">
+                Logi sisse ja toimeta
+              </button>
+              <button
+                className="btn"
+                type="button"
+                onClick={() => {
+                  setIsLoginModalOpen(false);
+                  setLoginError('');
+                  setLoginPasswordInput('');
+                }}
+              >
+                Sulge
+              </button>
+            </div>
+          </form>
+        </dialog>
+      )}
+
+      {/* DIALOG: PAROOLI MUUTMINE */}
+      {isPasswordChangeOpen && (
+        <dialog
+          open
+          style={{ display: "block", maxWidth: '440px' }}
+          id="pwd-dlg"
+          aria-labelledby="pwd-title"
+        >
+          <form onSubmit={handleChangePassword}>
+            <h2 id="pwd-title">Muuda haldaja parooli</h2>
+            <p style={{ color: 'var(--mu)', fontSize: '0.92rem', margin: '8px 0 16px' }}>
+              Määrake uus parool portfoolio toimetamiseks.
+            </p>
+
+            <label htmlFor="new-admin-pwd">Uus parool (vähemalt 4 märki)</label>
+            <input
+              type="text"
+              id="new-admin-pwd"
+              required
+              minLength={4}
+              value={newPasswordInput}
+              onChange={(e) => setNewPasswordInput(e.target.value)}
+              placeholder="Sisesta uus parool"
+              autoFocus
+            />
+
+            {passwordChangeSuccess && (
+              <div style={{ marginTop: '10px', color: '#16a34a', fontWeight: 600, fontSize: '0.92rem' }}>
+                {passwordChangeSuccess}
+              </div>
+            )}
+
+            <div className="acts" style={{ marginTop: '20px' }}>
+              <button className="btn pri" type="submit">
+                Salvesta uus parool
+              </button>
+              <button
+                className="btn"
+                type="button"
+                onClick={() => {
+                  setIsPasswordChangeOpen(false);
+                  setPasswordChangeSuccess('');
+                  setNewPasswordInput('');
+                }}
+              >
+                Tühista
+              </button>
+            </div>
+          </form>
+        </dialog>
+      )}
+
+      {/* DIALOG: GITHUB JUHIS PÄRAST ANDMETE ALLALAADIMIST */}
+      {isGitHubInfoModalOpen && (
+        <dialog
+          open
+          style={{ display: "block", maxWidth: '540px' }}
+          id="gh-dlg"
+          aria-labelledby="gh-title"
+        >
+          <div>
+            <h2 id="gh-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.25rem' }}>
+              <span>✅</span>
+              <span>Andmefail on alla laaditud!</span>
+            </h2>
+            <p style={{ margin: '12px 0 14px', lineHeight: 1.6, color: 'var(--tx)' }}>
+              Fail <strong>portfolio-data.json</strong> sisaldab kõiki teie viimaseid tekste, fotot ja tõendeid.
+            </p>
+
+            <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '12px', padding: '14px 16px', fontSize: '0.92rem' }}>
+              <div style={{ fontWeight: 700, color: '#1e3a8a', marginBottom: '8px' }}>
+                Kuidas teha muudatused GitHub Pages lingil kõigile nähtavaks:
+              </div>
+              <ol style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <li>Avage oma repositoorium <strong>github.com</strong> lehel.</li>
+                <li>Klõpsake <strong>Add file → Upload files</strong>.</li>
+                <li>Lohistage fail <code>portfolio-data.json</code> ja vajutage <strong>Commit changes</strong>.</li>
+              </ol>
+            </div>
+
+            <p style={{ fontSize: '0.88rem', color: 'var(--mu)', marginTop: '12px' }}>
+              Kõik komisjoniliikmed näevad teie uusi andmeid koheselt kaitstud vaaterežiimis ilma võimaluseta midagi muuta!
+            </p>
+
+            <div className="acts" style={{ marginTop: '18px' }}>
+              <button
+                className="btn pri"
+                type="button"
+                onClick={() => setIsGitHubInfoModalOpen(false)}
+              >
+                Suurepärane, sain aru!
+              </button>
+            </div>
           </div>
         </dialog>
       )}

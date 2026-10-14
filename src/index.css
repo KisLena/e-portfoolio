@@ -94,16 +94,92 @@ nav a {
   text-decoration: none;
   font-weight: 700;
   font-size: 0.95rem;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.1s ease;
 }
 
-nav a:hover {
-  background: var(--lb);
+/* Hover effects with section colors */
+nav a.nav-mina-ise:hover:not(.active) {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563EB;
+}
+nav a.nav-enesehoid:hover:not(.active) {
+  background: rgba(101, 184, 137, 0.15);
+  color: #2E7D52;
+}
+nav a.nav-oppija-toetamine:hover:not(.active) {
+  background: rgba(232, 93, 93, 0.12);
+  color: #D32F2F;
+}
+nav a.nav-organisatsioon:hover:not(.active) {
+  background: rgba(255, 212, 71, 0.28);
+  color: #855B00;
+}
+nav a.nav-okosusteem:hover:not(.active) {
+  background: rgba(142, 107, 191, 0.15);
+  color: #724E9D;
 }
 
-nav a[aria-current="page"],
-nav a.active {
-  background: var(--ye);
+/* While pressing button (mousedown / active state) */
+nav a.nav-mina-ise:active {
+  background: #1D4ED8 !important;
+  color: #FFFFFF !important;
+  transform: scale(0.97);
+}
+nav a.nav-enesehoid:active {
+  background: #3B8C5E !important;
+  color: #FFFFFF !important;
+  transform: scale(0.97);
+}
+nav a.nav-oppija-toetamine:active {
+  background: #D32F2F !important;
+  color: #FFFFFF !important;
+  transform: scale(0.97);
+}
+nav a.nav-organisatsioon:active {
+  background: #E5BC28 !important;
+  color: #1E293B !important;
+  transform: scale(0.97);
+}
+nav a.nav-okosusteem:active {
+  background: #7654A6 !important;
+  color: #FFFFFF !important;
+  transform: scale(0.97);
+}
+
+/* Active section page styles matching section color */
+nav a.nav-mina-ise.active,
+nav a.nav-mina-ise[aria-current="page"] {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+nav a.nav-enesehoid.active,
+nav a.nav-enesehoid[aria-current="page"] {
+  background: #65B889 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(101, 184, 137, 0.35);
+}
+
+nav a.nav-oppija-toetamine.active,
+nav a.nav-oppija-toetamine[aria-current="page"] {
+  background: #E85D5D !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(232, 93, 93, 0.35);
+}
+
+nav a.nav-organisatsioon.active,
+nav a.nav-organisatsioon[aria-current="page"] {
+  background: #FFD447 !important;
+  color: #1E293B !important;
+  box-shadow: 0 2px 8px rgba(255, 212, 71, 0.45);
+}
+
+nav a.nav-okosusteem.active,
+nav a.nav-okosusteem[aria-current="page"] {
+  background: #8E6BBF !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(142, 107, 191, 0.35);
 }
 
 #mt {
@@ -441,6 +517,58 @@ input:focus {
   border-color: var(--bl);
   outline: none;
   box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.15);
+}
+
+.prose-text {
+  font-size: 1.04rem;
+  line-height: 1.75;
+  color: #1e293b;
+  background: #fbfbfa;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 20px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+}
+
+.prose-text p {
+  margin: 0 0 0.8em;
+}
+
+.prose-text p:last-child {
+  margin-bottom: 0;
+}
+
+.empty-prose {
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 0.95rem;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px dashed #cbd5e1;
+}
+
+.admin-banner {
+  background: linear-gradient(90deg, #1e3a8a, #2563eb);
+  color: #ffffff;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.admin-banner-content {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 label,
