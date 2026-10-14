@@ -330,7 +330,7 @@ export const IntroductionHero: React.FC<IntroductionHeroProps> = ({
                   </div>
                   <div className="flex justify-between">
                     <span>Standard:</span>
-                    <span className="font-medium text-[#24364B] text-right">Õpetaja tase 7</span>
+                    <span className="font-medium text-[#24364B] text-right">Õpetaja tase 6</span>
                   </div>
                   <div className="flex justify-between">
                     <span>E-post:</span>

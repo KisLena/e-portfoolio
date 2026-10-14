@@ -122,7 +122,7 @@ export const CompetencyDetailModal: React.FC<CompetencyDetailModalProps> = ({
                   {card.number}. {card.title}
                 </span>
                 <span aria-hidden="true" className="text-[#E9EDF1]">·</span>
-                <span>Kutsestandard tase 7</span>
+                <span>Kutsestandard tase 6</span>
               </div>
               <h3 className="font-serif font-bold text-[#24364B] text-xl sm:text-2xl leading-snug">
                 {item.name}

@@ -37,7 +37,7 @@ export const INITIAL_INTRODUCTION: PortfolioIntroduction = {
   authorName: 'Elena Galanina',
   role: 'Õpetaja / Pedagoog',
   institution: 'Tallinna Humanitaargümnaasium',
-  qualification: 'Õpetaja kutsestandard tase 7 / vanemõpetaja pädevused',
+  qualification: 'Õpetaja kutsestandard tase 6 pädevused',
   leadText: 'Tere tulemast minu e-portfooliosse! Siia olen koondanud oma pedagoogilise teekonna sisulise eneseanalüüsi, väärtuspõhised põhimõtted, õppijate toetamise meetodid ning praktilised tõendusmaterjalid. Portfoolio toetub õpetaja kutsestandardi viiele pädevusvaldkonnale ning on pidevas arengus koos minu õppijate ja haridusuuendustega.',
   motto: '„Õpetamine ei ole valmis teadmiste edasiandmine, vaid mõtlemisjulguse kasvatamine, usaldusliku suhte loomine ja iga õppija ainulaadse potentsiaali märkamine.”',
   email: 'kislyakova.lena@gmail.com',

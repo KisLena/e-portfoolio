@@ -19,8 +19,10 @@ export interface DefaultPortfolioData {
 export const DEFAULT_PORTFOLIO_DATA: DefaultPortfolioData = {
   heroImage: null,
   texts: {
-    "home-intro": "Tere tulemast minu e-portfooliosse! Olen Elena Galanina, pühendunud pedagoog ja õpetaja. Käesolev e-portfoolio on koostatud vastavalt Õpetaja kutsestandardile (tase 7) ning peegeldab minu professionaalset teekonda, pedagoogilisi väärtusi, eneseanalüüsi ning tõendusmaterjale.",
-    // Sample reflections can be pre-filled or populated from user export
+    "home-intro": "Tere tulemast minu e-portfooliosse! Olen Elena Galanina, pühendunud pedagoog ja õpetaja. Käesolev e-portfoolio on koostatud vastavalt Õpetaja kutsestandardile (tase 6) ning peegeldab minu professionaalset teekonda, pedagoogilisi väärtusi, eneseanalüüsi ning tõendusmaterjale.",
+    "contact-bio": "Pühendunud pedagoog, õppijate arengu toetaja ning haridusuuenduste ja Lego Education Milo haridusroboti projektide elluviija.",
+    "contact-email": "kislyakova.lena@gmail.com",
+    "contact-location": "Tallinn, Eesti"
   },
   evidence: {}
 };

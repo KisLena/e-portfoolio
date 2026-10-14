@@ -1044,15 +1044,6 @@ export default function App() {
             </span>
           </a>
 
-          <button
-            id="mt"
-            aria-expanded={menuOpen}
-            aria-controls="nv"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            Menüü
-          </button>
-
           <nav id="nv" className={menuOpen ? "open" : ""} aria-label="Põhimenüü">
             <ul id="nl">
               {SECTIONS.map((p) => {
@@ -1071,6 +1062,43 @@ export default function App() {
               })}
             </ul>
           </nav>
+
+          <div className="header-actions">
+            {isAdmin ? (
+              <button
+                type="button"
+                onClick={handleExitAdmin}
+                className="btn-header-admin"
+                title="Välju toimetamise režiimist"
+              >
+                <span>🚪</span>
+                <span>Välju</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn-header-edit"
+                onClick={() => {
+                  setLoginError('');
+                  setLoginPasswordInput('');
+                  setIsLoginModalOpen(true);
+                }}
+                title="Toimeta portfooliot (ainult Elena Galanina)"
+              >
+                <span>🔒</span>
+                <span>Toimeta</span>
+              </button>
+            )}
+
+            <button
+              id="mt"
+              aria-expanded={menuOpen}
+              aria-controls="nv"
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              Menüü
+            </button>
+          </div>
         </div>
       </header>
 
@@ -1398,9 +1426,6 @@ export default function App() {
                     <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '1.15rem' }}>
                       Elena Galanina
                     </div>
-                    <div style={{ color: 'var(--mu)', fontSize: '0.9rem', maxWidth: '240px' }}>
-                      Õpetaja e-portfoolio • Kutsestandard tase 7
-                    </div>
                   </div>
                 )}
               </div>
@@ -1614,11 +1639,28 @@ export default function App() {
         )}
       </main>
 
-      {/* FOOTER */}
+      {/* FOOTER: CONTACT DETAILS & CREDENTIALS */}
       <footer>
-        <div className="wrap" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px 20px' }}>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-            <input
+        <div className="wrap">
+
+
+          {/* Admin tools when logged in */}
+          {isAdmin && (
+            <div
+              style={{
+                padding: '16px 20px',
+                background: '#F8FAFC',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '12px',
+                marginBottom: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
+              <input
                 type="file"
                 ref={importFileInputRef}
                 accept=".json"
@@ -1629,84 +1671,104 @@ export default function App() {
                   e.target.value = '';
                 }}
               />
-
-              {isAdmin ? (
-                <>
-                  <button
-                    type="button"
-                    className="btn sm"
-                    title="Laadi alla fail kõigi sisestatud tekstide ja tõenditega"
-                    onClick={handleExportData}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    <span>💾 Varunda andmed (JSON)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn sm"
-                    title="Taasta varem salvestatud JSON failist andmed"
-                    onClick={() => importFileInputRef.current?.click()}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    <span>📥 Taasta andmed</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn sm"
-                    title="Muuda portfoolio toimetamise parooli"
-                    onClick={() => {
-                      setNewPasswordInput('');
-                      setPasswordChangeSuccess('');
-                      setIsPasswordChangeOpen(true);
-                    }}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    <span>🔑 Muuda parooli</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn sm"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      color: '#DC2626',
-                      borderColor: '#FECACA',
-                      background: '#FEF2F2',
-                    }}
-                    onClick={handleExitAdmin}
-                  >
-                    <span>🚪 Logi välja</span>
-                  </button>
-                </>
-              ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🛠️</span>
+                <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1E293B' }}>
+                  Andmehaldus ja seaded (Admin):
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
                 <button
                   type="button"
                   className="btn sm"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    fontSize: '0.82rem',
-                    opacity: 0.65,
-                    border: '1px dashed #94a3b8',
-                    background: 'transparent',
-                  }}
-                  onClick={() => {
-                    setLoginError('');
-                    setLoginPasswordInput('');
-                    setIsLoginModalOpen(true);
-                  }}
-                  title="Ainult Elena Galanina jaoks"
+                  title="Laadi alla fail kõigi sisestatud tekstide ja tõenditega"
+                  onClick={handleExportData}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
-                  <span>🔒</span>
-                  <span>Toimeta</span>
+                  <span>💾 Varunda andmed (JSON)</span>
                 </button>
-              )}
+                <button
+                  type="button"
+                  className="btn sm"
+                  title="Taasta andmed varem salvestatud failist"
+                  onClick={() => importFileInputRef.current?.click()}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <span>📥 Taasta andmed</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn sm"
+                  title="Muuda parooli"
+                  onClick={() => {
+                    setNewPasswordInput('');
+                    setPasswordChangeSuccess('');
+                    setIsPasswordChangeOpen(true);
+                  }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <span>🔑 Muuda parooli</span>
+                </button>
+              </div>
             </div>
+          )}
+
+          {/* Bottom copyright line & centered Toimeta button */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              gap: '14px',
+              fontSize: '0.86rem',
+              color: '#64748B',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+                gap: '8px 16px',
+              }}
+            >
+              <span>© {new Date().getFullYear()} Elena Galanina • Kõik õigused kaitstud</span>
+              <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
+              <span>Õpetaja kutsestandard tase 6 kompetentsid ja eneseanalüüs</span>
+            </div>
+
+            {!isAdmin && (
+              <button
+                type="button"
+                className="btn sm"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '0.84rem',
+                  opacity: 0.75,
+                  border: '1px dashed #94a3b8',
+                  background: 'transparent',
+                  padding: '6px 16px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                onClick={() => {
+                  setLoginError('');
+                  setLoginPasswordInput('');
+                  setIsLoginModalOpen(true);
+                }}
+                title="Toimeta portfooliot (Elena Galanina)"
+              >
+                <span>🔒</span>
+                <span>Toimeta</span>
+              </button>
+            )}
+          </div>
         </div>
       </footer>
 

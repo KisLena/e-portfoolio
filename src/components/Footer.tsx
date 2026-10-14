@@ -27,7 +27,7 @@ export const Footer: React.FC<FooterProps> = ({ intro, onPrint }) => {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-[#E9EDF1]/80 leading-relaxed max-w-sm">
-              Õpetaja kutsestandardile (tase 7) vastav professionaalse arengu e-portfoolio. Eneseanalüüs, tõendusmaterjalid ja haridusrobootika lõiming.
+              Õpetaja kutsestandardile (tase 6) vastav professionaalse arengu e-portfoolio. Eneseanalüüs, tõendusmaterjalid ja haridusrobootika lõiming.
             </p>
             <div className="text-xs text-[#566A80]">
               {intro.institution} · {intro.authorName}
@@ -86,7 +86,7 @@ export const Footer: React.FC<FooterProps> = ({ intro, onPrint }) => {
             © {new Date().getFullYear()} {intro.authorName}. Kõik õigused kaitstud. {intro.title}.
           </div>
           <div className="flex items-center gap-6">
-            <span>Kutsestandard tase 7</span>
+            <span>Kutsestandard tase 6</span>
             <span aria-hidden="true">·</span>
             <span>Eesti Vabariik</span>
             <button
