@@ -1,0 +1,6 @@
+{
+  "name": "Elena Galanina / e-portfoolio",
+  "description": "Elena Galanina professionaalne e-portfoolio: õpetaja pädevused, eneseanalüüs, tõendid ja haridusrobot Milo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
