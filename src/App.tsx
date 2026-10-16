@@ -1064,7 +1064,7 @@ export default function App() {
           </nav>
 
           <div className="header-actions">
-            {isAdmin ? (
+            {isAdmin && (
               <button
                 type="button"
                 onClick={handleExitAdmin}
@@ -1073,20 +1073,6 @@ export default function App() {
               >
                 <span>🚪</span>
                 <span>Välju</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn-header-edit"
-                onClick={() => {
-                  setLoginError('');
-                  setLoginPasswordInput('');
-                  setIsLoginModalOpen(true);
-                }}
-                title="Toimeta portfooliot (ainult Elena Galanina)"
-              >
-                <span>🔒</span>
-                <span>Toimeta</span>
               </button>
             )}
 
@@ -1714,58 +1700,51 @@ export default function App() {
           )}
 
           {/* Bottom copyright line & centered Toimeta button */}
+          {/* Bottom row: text and lock icon in one row */}
           <div
             style={{
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              textAlign: 'center',
-              gap: '14px',
-              fontSize: '0.86rem',
+              flexWrap: 'wrap',
+              gap: '12px',
+              fontSize: '0.88rem',
               color: '#64748B',
+              textAlign: 'center',
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexWrap: 'wrap',
-                gap: '8px 16px',
-              }}
-            >
-              <span>© {new Date().getFullYear()} Elena Galanina • Kõik õigused kaitstud</span>
-              <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
-              <span>Õpetaja kutsestandard tase 6 kompetentsid ja eneseanalüüs</span>
-            </div>
+            <span>Õpetaja kutsestandard tase 6 kompetentsid ja eneseanalüüs</span>
 
             {!isAdmin && (
               <button
                 type="button"
-                className="btn sm"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  fontSize: '0.84rem',
-                  opacity: 0.75,
+                  justifyContent: 'center',
+                  width: '28px',
+                  height: '28px',
+                  padding: 0,
+                  fontSize: '0.9rem',
+                  opacity: 0.55,
                   border: '1px dashed #94a3b8',
                   background: 'transparent',
-                  padding: '6px 16px',
-                  borderRadius: '8px',
+                  borderRadius: '50%',
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease',
+                  transition: 'opacity 0.2s ease',
+                  flexShrink: 0,
                 }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.55')}
                 onClick={() => {
                   setLoginError('');
                   setLoginPasswordInput('');
                   setIsLoginModalOpen(true);
                 }}
+                aria-label="Toimeta portfooliot"
                 title="Toimeta portfooliot (Elena Galanina)"
               >
-                <span>🔒</span>
-                <span>Toimeta</span>
+                <span aria-hidden="true">🔒</span>
               </button>
             )}
           </div>
