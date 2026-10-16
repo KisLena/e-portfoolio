@@ -19,11 +19,13 @@ interface SectionDef {
 
 const SECTIONS: SectionDef[] = [
   {
-    title: "Mina ise",
-    slug: "mina-ise",
+    title: "Enesehoid",
+    slug: "enesehoid",
     color: "var(--bl)",
     desc: "Minu enesehoid, heaolu ja professionaalne areng.",
     items: [
+      "Tervise hoidmine",
+      "Tasakaalu hoidmine",
       "Karjääritee kujundamine",
       "Teadmiste ajakohastamine",
       "Uurimusliku lähenemise rakendamine enda professionaalsuse arendamiseks",
@@ -31,19 +33,7 @@ const SECTIONS: SectionDef[] = [
       "Innovatsioonipädevus"
     ],
     prefix: "mi",
-    customIds: ["mi3", "mi4", "mi5", "mi6", "mi7"]
-  },
-  {
-    title: "Enesehoid",
-    slug: "enesehoid",
-    color: "var(--gr)",
-    desc: "Minu professionaalse heaolu ja enesearengu toetamine.",
-    items: [
-      "Tervise hoidmine",
-      "Tasakaalu hoidmine"
-    ],
-    prefix: "eh",
-    customIds: ["mi1", "mi2"]
+    customIds: ["mi1", "mi2", "mi3", "mi4", "mi5", "mi6", "mi7"]
   },
   {
     title: "Õppija toetamine",
@@ -85,7 +75,7 @@ const SECTIONS: SectionDef[] = [
   {
     title: "Ökosüsteem",
     slug: "okosusteem",
-    color: "#8E6BBF",
+    color: "#16A34A",
     desc: "Koostöö haridusvaldkonnas, õpetaja elukutse väärtustamine ja teadmiste jagamine.",
     items: [
       "Koostöö ja panustamine valdkonna- või erialaühenduste töösse",
@@ -100,10 +90,9 @@ const SECTIONS: SectionDef[] = [
 
 const ICONS = [
   <svg key="0" width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="10" r="5" fill="#fff"/><rect x="6" y="17" width="16" height="9" rx="3" fill="#fff"/></svg>,
-  <svg key="1" width="28" height="28" viewBox="0 0 28 28"><circle cx="12" cy="14" r="6" fill="none" stroke="#fff" strokeWidth="3" strokeDasharray="4 2.5"/><path d="M18 20c6-1 8-7 8-10-4 0-9 3-8 10z" fill="#fff"/></svg>,
-  <svg key="2" width="28" height="28" viewBox="0 0 28 28"><rect x="6" y="9" width="16" height="12" rx="3" fill="#fff"/><circle cx="11" cy="14" r="2" fill="#E85D5D"/><circle cx="17" cy="14" r="2" fill="#E85D5D"/><rect x="12" y="4" width="4" height="5" fill="#fff"/></svg>,
-  <svg key="3" width="28" height="28" viewBox="0 0 28 28"><rect x="4" y="12" width="12" height="10" rx="2" fill="#fff"/><rect x="12" y="6" width="12" height="10" rx="2" fill="#24364B" opacity=".75"/><circle cx="8" cy="10" r="2" fill="#fff"/><circle cx="18" cy="4" r="2" fill="#24364B"/></svg>,
-  <svg key="4" width="28" height="28" viewBox="0 0 28 28"><circle cx="9" cy="14" r="5" fill="none" stroke="#fff" strokeWidth="3" strokeDasharray="3 2"/><circle cx="20" cy="9" r="4" fill="none" stroke="#fff" strokeWidth="3" strokeDasharray="3 2"/><circle cx="20" cy="20" r="4" fill="#fff"/></svg>
+  <svg key="1" width="28" height="28" viewBox="0 0 28 28"><rect x="6" y="9" width="16" height="12" rx="3" fill="#fff"/><circle cx="11" cy="14" r="2" fill="#E85D5D"/><circle cx="17" cy="14" r="2" fill="#E85D5D"/><rect x="12" y="4" width="4" height="5" fill="#fff"/></svg>,
+  <svg key="2" width="28" height="28" viewBox="0 0 28 28"><rect x="4" y="12" width="12" height="10" rx="2" fill="#fff"/><rect x="12" y="6" width="12" height="10" rx="2" fill="#24364B" opacity=".75"/><circle cx="8" cy="10" r="2" fill="#fff"/><circle cx="18" cy="4" r="2" fill="#24364B"/></svg>,
+  <svg key="3" width="28" height="28" viewBox="0 0 28 28"><circle cx="9" cy="14" r="5" fill="none" stroke="#fff" strokeWidth="3" strokeDasharray="3 2"/><circle cx="20" cy="9" r="4" fill="none" stroke="#fff" strokeWidth="3" strokeDasharray="3 2"/><circle cx="20" cy="20" r="4" fill="#fff"/></svg>
 ];
 
 const PROMPTS: Record<string, string> = {
@@ -928,7 +917,9 @@ export default function App() {
     reader.readAsText(file);
   };
 
-  const activeSectionIndex = SECTIONS.findIndex((s) => s.slug === currentRoute);
+  const activeSectionIndex = SECTIONS.findIndex(
+    (s) => s.slug === currentRoute || (s.slug === 'enesehoid' && currentRoute === 'mina-ise')
+  );
   const activeSection = activeSectionIndex >= 0 ? SECTIONS[activeSectionIndex] : null;
 
   return (
@@ -1047,7 +1038,9 @@ export default function App() {
           <nav id="nv" className={menuOpen ? "open" : ""} aria-label="Põhimenüü">
             <ul id="nl">
               {SECTIONS.map((p) => {
-                const isActive = currentRoute === p.slug;
+                const isActive =
+                  currentRoute === p.slug ||
+                  (p.slug === 'enesehoid' && currentRoute === 'mina-ise');
                 return (
                   <li key={p.slug}>
                     <a
@@ -1064,7 +1057,21 @@ export default function App() {
           </nav>
 
           <div className="header-actions">
-            {isAdmin && (
+            {!isAdmin ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginError('');
+                  setLoginPasswordInput('');
+                  setIsLoginModalOpen(true);
+                }}
+                className="btn-header-lock"
+                aria-label="Toimeta portfooliot"
+                title="Toimeta portfooliot"
+              >
+                <span aria-hidden="true">🔒</span>
+              </button>
+            ) : (
               <button
                 type="button"
                 onClick={handleExitAdmin}
@@ -1473,7 +1480,10 @@ export default function App() {
                 <details
                   key={id}
                   className="panel"
-                  style={{ ['--c' as any]: activeSection.color }}
+                  style={{
+                    ['--c' as any]: activeSection.color,
+                    ['--t' as any]: activeSectionIndex % 4 === 0 ? '#fff' : '#24364B',
+                  }}
                   open={isOpen}
                   onToggle={(e) => {
                     const nextOpen = (e.currentTarget as HTMLDetailsElement).open;
@@ -1628,17 +1638,112 @@ export default function App() {
       {/* FOOTER: CONTACT DETAILS & CREDENTIALS */}
       <footer>
         <div className="wrap">
+          {/* Structured 3-column contact and portfolio info */}
+          <div className="footer-content">
+            {/* Col 1: Elena Galanina */}
+            <div className="footer-col">
+              <h3>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '50%',
+                    backgroundColor: '#111827',
+                    color: '#FFFFFF',
+                    fontFamily: "'Lora', Georgia, 'Times New Roman', serif",
+                    fontWeight: 700,
+                    fontSize: '15px',
+                    flexShrink: 0,
+                  }}
+                  aria-hidden="true"
+                >
+                  E
+                </span>
+                Elena Galanina
+              </h3>
+              <p style={{ fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
+                Õpetaja (tase 6)
+              </p>
+              <p>
+                {textValues['contact-bio'] ||
+                  'Pühendunud pedagoog, õppijate arengu toetaja ning haridusuuenduste ja Lego Education Milo haridusroboti projektide elluviija.'}
+              </p>
+            </div>
 
+            {/* Col 2: Contact info */}
+            <div className="footer-col">
+              <h3>📬 Kontakt ja asukoht</h3>
+              <ul className="footer-contact-list">
+                <li className="footer-contact-item">
+                  <span aria-hidden="true">✉️</span>
+                  <div>
+                    <span style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'block' }}>E-post</span>
+                    <a href={`mailto:${textValues['contact-email'] || 'kislyakova.lena@gmail.com'}`}>
+                      {textValues['contact-email'] || 'kislyakova.lena@gmail.com'}
+                    </a>
+                  </div>
+                </li>
+                <li className="footer-contact-item">
+                  <span aria-hidden="true">📍</span>
+                  <div>
+                    <span style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'block' }}>Asukoht</span>
+                    <span>{textValues['contact-location'] || 'Tallinn, Eesti'}</span>
+                  </div>
+                </li>
+                <li className="footer-contact-item">
+                  <span aria-hidden="true">🎓</span>
+                  <div>
+                    <span style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'block' }}>Kvalifikatsioon</span>
+                    <span>Õpetaja kutsestandard (tase 6)</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 3: Sections navigation */}
+            <div className="footer-col">
+              <h3>🧭 Pädevusvaldkonnad</h3>
+              <ul className="footer-nav-list">
+                {SECTIONS.map((s) => (
+                  <li key={s.slug}>
+                    <a href={`#/${s.slug}`}>
+                      <span
+                        style={{
+                          width: '9px',
+                          height: '9px',
+                          borderRadius: '50%',
+                          background:
+                            s.slug === 'enesehoid' || s.slug === 'mina-ise'
+                              ? '#2563EB'
+                              : s.slug === 'oppija-toetamine'
+                              ? '#E85D5D'
+                              : s.slug === 'organisatsioon'
+                              ? '#FFD447'
+                              : '#16A34A',
+                          display: 'inline-block',
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span>{s.title}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
 
           {/* Admin tools when logged in */}
           {isAdmin && (
             <div
               style={{
                 padding: '16px 20px',
-                background: '#F8FAFC',
-                border: '1.5px solid #E2E8F0',
+                background: '#F1F5F9',
+                border: '1.5px solid #CBD5E1',
                 borderRadius: '12px',
-                marginBottom: '28px',
+                marginBottom: '22px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -1699,54 +1804,10 @@ export default function App() {
             </div>
           )}
 
-          {/* Bottom copyright line & centered Toimeta button */}
-          {/* Bottom row: text and lock icon in one row */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              gap: '12px',
-              fontSize: '0.88rem',
-              color: '#64748B',
-              textAlign: 'center',
-            }}
-          >
-            <span>Õpetaja kutsestandard tase 6 kompetentsid ja eneseanalüüs</span>
-
-            {!isAdmin && (
-              <button
-                type="button"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '28px',
-                  height: '28px',
-                  padding: 0,
-                  fontSize: '0.9rem',
-                  opacity: 0.55,
-                  border: '1px dashed #94a3b8',
-                  background: 'transparent',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  transition: 'opacity 0.2s ease',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.55')}
-                onClick={() => {
-                  setLoginError('');
-                  setLoginPasswordInput('');
-                  setIsLoginModalOpen(true);
-                }}
-                aria-label="Toimeta portfooliot"
-                title="Toimeta portfooliot (Elena Galanina)"
-              >
-                <span aria-hidden="true">🔒</span>
-              </button>
-            )}
+          {/* Bottom copyright row */}
+          <div className="footer-bottom">
+            <span>© {new Date().getFullYear()} Elena Galanina. Õpetaja kutsestandard tase 6 kompetentsid ja eneseanalüüs.</span>
+            <span>Koostatud kutse taotlemiseks</span>
           </div>
         </div>
       </footer>

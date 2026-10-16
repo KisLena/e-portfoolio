@@ -56,8 +56,8 @@ export const Footer: React.FC<FooterProps> = ({ intro, onPrint }) => {
                 <span className="w-2 h-2 rounded-full bg-[#FFD447]" />
                 <span>4. Organisatsioon (8 osapädevust)</span>
               </a>
-              <a href="#card-okosusteem" className="hover:text-[#8E6BBF] transition-colors flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#8E6BBF]" />
+              <a href="#card-okosusteem" className="hover:text-[#16A34A] transition-colors flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
                 <span>5. Ökosüsteem (5 osapädevust)</span>
               </a>
             </div>

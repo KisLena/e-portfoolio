@@ -48,12 +48,38 @@ export const INITIAL_COMPETENCY_CARDS: CompetencyCard[] = [
   {
     id: 'mina-ise',
     number: 1,
-    title: 'Mina ise',
+    title: 'Enesehoid',
     subtitle: 'Enesejuhtimine ja professionaalne identiteet',
     description: 'Õpetaja isiklik areng, refleksiooniharjumus, teaduspõhine ja uurimuslik lähenemine ning pidev õppimine.',
     color: '#2563EB',      // Sinine
     darkColor: '#1D4ED8',  // Tumedam sinine «Ava →» jaoks
     items: [
+      {
+        id: 'c1-0a',
+        name: 'Tervise hoidmine',
+        reflection: 'Hoolitsen teadlikult oma vaimse, füüsilise, sotsiaalse ja emotsionaalse heaolu eest. Järgin tervislikke eluviise ja ergonoomikat, mis tagab pikaajalise töövõime ja positiivse energia õppetöös.',
+        evidence: [
+          'Terviseedenduse ja heaolu praktikad töökohal',
+          'Ergonoomiliste töövõtete rakendamine klassiruumis',
+        ],
+        actionPoints: [
+          'Hoida regulaarset liikumisharjumust ja taastumisaega',
+        ],
+        status: 'completed',
+      },
+      {
+        id: 'c1-0b',
+        name: 'Tasakaalu hoidmine',
+        reflection: 'Hoolitsen töö- ja eraelu teadliku tasakaalu eest, seades selged piirid tööajale ja puhkusele ning ennetades läbipõlemist läbi tõhusa ajaplaneerimise.',
+        evidence: [
+          'Tööaja ja puhkeaja planeerimise süsteem',
+          'Enesehoiu strateegiate analüüs',
+        ],
+        actionPoints: [
+          'Järgida puhkepäevadel digipaastu põhimõtteid',
+        ],
+        status: 'completed',
+      },
       {
         id: 'c1-1',
         name: 'Karjääritee kujundamine',
@@ -131,48 +157,8 @@ export const INITIAL_COMPETENCY_CARDS: CompetencyCard[] = [
     ],
   },
   {
-    id: 'enesehoid',
-    number: 2,
-    title: 'Enesehoid',
-    subtitle: 'Vaimne, füüsiline ja emotsionaalne heaolu',
-    description: 'Õpetaja vaimse ja füüsilise tervise hoidmine, töö- ja eraelu tasakaal, läbipõlemise ennetamine ning emotsionaalne regulatsioon.',
-    color: '#65B889',      // Roheline
-    darkColor: '#3E865B',  // Tumedam roheline «Ava →» jaoks
-    items: [
-      {
-        id: 'c2-1',
-        name: 'Tervise hoidmine',
-        reflection: 'Mõistan, et professionaalne sooritusvõime ja empaatiavõime klassiruumis toetuvad heale füüsilisele ja vaimsele tervisele. Teadlikult jälgin unerežiimi, liikumisharjumusi ja teen tööpäeva sees lühikesi mikropause.',
-        evidence: [
-          'Koolituse „Õpetaja vaimne tervis ja stressijuhtimine” materjalid ja enesehoiukava',
-          'Tööpäeva pauside ja häälehoidmise rutiinide kirjeldus',
-          'Koolipsühholoogi ja kovisiooni toetusgruppides osalemise kinnitused',
-        ],
-        actionPoints: [
-          'Säilitada igapäevane värskes õhus liikumise eesmärk (vähemalt 30 min)',
-          'Jätkata teadveloleku (mindfulness) harjutuste praktiseerimist enne pingelisi tunde',
-        ],
-        status: 'completed',
-      },
-      {
-        id: 'c2-2',
-        name: 'Tasakaalu hoidmine',
-        reflection: 'Sean selged piirid tööaja ja isikliku elu vahel: ei vasta õhtuti töökirjadele väljaspool kokkulepitud aegu, delegeerin ja planeerin hindamistööd portsjonitena, vältides tööde kuhjumist ja kroonilist väsimust.',
-        evidence: [
-          'Tööaja juhtimise ja piiride seadmise kokkulepped (kommunikatsioonireeglid lastevanematega)',
-          'Hindamiskoormuse optimeerimise plaan: kujundava hindamise ja kaasõppija tagasiside tasakaal',
-        ],
-        actionPoints: [
-          'Fikseerida kindlad kirjadele vastamise kellaajad (nt 8:00–16:30)',
-          'Pühendada nädalavahetused täielikult taastumisele ja perele',
-        ],
-        status: 'completed',
-      },
-    ],
-  },
-  {
     id: 'oppija-toetamine',
-    number: 3,
+    number: 2,
     title: 'Õppija toetamine',
     subtitle: 'Õpetamine, arengukeskkond ja väärtused',
     description: 'Õppijate tundmaõppimine, turvalise ja toetava keskkonna loomine, ainesisu didaktiline käsitlemine, diferentseerimine ning väärtuspõhine tagasiside.',
@@ -304,7 +290,7 @@ export const INITIAL_COMPETENCY_CARDS: CompetencyCard[] = [
   },
   {
     id: 'organisatsioon',
-    number: 4,
+    number: 3,
     title: 'Organisatsioon',
     subtitle: 'Koolikultuur, meeskonnatöö ja partnerlus',
     description: 'Töö koolimeeskonnas, ühiste väärtuste ja arengukava elluviimine, turvaline töökeskkond, koostöö kolleegide ja lastevanematega.',
@@ -404,12 +390,12 @@ export const INITIAL_COMPETENCY_CARDS: CompetencyCard[] = [
   },
   {
     id: 'okosusteem',
-    number: 5,
+    number: 4,
     title: 'Ökosüsteem',
     subtitle: 'Haridusruum, ühiskond ja valdkondlik mõju',
     description: 'Panustamine aineühenduste töösse, pedagoogilise teadmuse levitamine laiemas ühiskonnas, säilenõtkus ning digipädevuse juhtimine.',
-    color: '#8E6BBF',      // Lilla
-    darkColor: '#634091',  // Tumedam lilla «Ava →» jaoks
+    color: '#16A34A',      // Roheline (Ökosüsteem)
+    darkColor: '#15803D',  // Tumedam roheline «Ava →» jaoks
     items: [
       {
         id: 'c5-1',
