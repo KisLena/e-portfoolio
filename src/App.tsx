@@ -1635,106 +1635,9 @@ export default function App() {
         )}
       </main>
 
-      {/* FOOTER: CONTACT DETAILS & CREDENTIALS */}
+      {/* FOOTER */}
       <footer>
         <div className="wrap">
-          {/* Structured 3-column contact and portfolio info */}
-          <div className="footer-content">
-            {/* Col 1: Elena Galanina */}
-            <div className="footer-col">
-              <h3>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '50%',
-                    backgroundColor: '#111827',
-                    color: '#FFFFFF',
-                    fontFamily: "'Lora', Georgia, 'Times New Roman', serif",
-                    fontWeight: 700,
-                    fontSize: '15px',
-                    flexShrink: 0,
-                  }}
-                  aria-hidden="true"
-                >
-                  E
-                </span>
-                Elena Galanina
-              </h3>
-              <p style={{ fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
-                Õpetaja (tase 6)
-              </p>
-              <p>
-                {textValues['contact-bio'] ||
-                  'Pühendunud pedagoog, õppijate arengu toetaja ning haridusuuenduste ja Lego Education Milo haridusroboti projektide elluviija.'}
-              </p>
-            </div>
-
-            {/* Col 2: Contact info */}
-            <div className="footer-col">
-              <h3>📬 Kontakt ja asukoht</h3>
-              <ul className="footer-contact-list">
-                <li className="footer-contact-item">
-                  <span aria-hidden="true">✉️</span>
-                  <div>
-                    <span style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'block' }}>E-post</span>
-                    <a href={`mailto:${textValues['contact-email'] || 'kislyakova.lena@gmail.com'}`}>
-                      {textValues['contact-email'] || 'kislyakova.lena@gmail.com'}
-                    </a>
-                  </div>
-                </li>
-                <li className="footer-contact-item">
-                  <span aria-hidden="true">📍</span>
-                  <div>
-                    <span style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'block' }}>Asukoht</span>
-                    <span>{textValues['contact-location'] || 'Tallinn, Eesti'}</span>
-                  </div>
-                </li>
-                <li className="footer-contact-item">
-                  <span aria-hidden="true">🎓</span>
-                  <div>
-                    <span style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'block' }}>Kvalifikatsioon</span>
-                    <span>Õpetaja kutsestandard (tase 6)</span>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            {/* Col 3: Sections navigation */}
-            <div className="footer-col">
-              <h3>🧭 Pädevusvaldkonnad</h3>
-              <ul className="footer-nav-list">
-                {SECTIONS.map((s) => (
-                  <li key={s.slug}>
-                    <a href={`#/${s.slug}`}>
-                      <span
-                        style={{
-                          width: '9px',
-                          height: '9px',
-                          borderRadius: '50%',
-                          background:
-                            s.slug === 'enesehoid' || s.slug === 'mina-ise'
-                              ? '#2563EB'
-                              : s.slug === 'oppija-toetamine'
-                              ? '#E85D5D'
-                              : s.slug === 'organisatsioon'
-                              ? '#FFD447'
-                              : '#16A34A',
-                          display: 'inline-block',
-                          flexShrink: 0,
-                        }}
-                      />
-                      <span>{s.title}</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
           {/* Admin tools when logged in */}
           {isAdmin && (
             <div
@@ -1743,7 +1646,7 @@ export default function App() {
                 background: '#F1F5F9',
                 border: '1.5px solid #CBD5E1',
                 borderRadius: '12px',
-                marginBottom: '22px',
+                marginBottom: '20px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -1804,10 +1707,19 @@ export default function App() {
             </div>
           )}
 
-          {/* Bottom copyright row */}
-          <div className="footer-bottom">
-            <span>© {new Date().getFullYear()} Elena Galanina. Õpetaja kutsestandard tase 6 kompetentsid ja eneseanalüüs.</span>
-            <span>Koostatud kutse taotlemiseks</span>
+          {/* Clean minimal footer line */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              fontSize: '0.9rem',
+              color: '#64748B',
+              padding: '6px 0',
+            }}
+          >
+            <span>Õpetaja kutsestandard tase 6 kompetentsid ja eneseanalüüs</span>
           </div>
         </div>
       </footer>
